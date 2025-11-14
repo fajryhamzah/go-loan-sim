@@ -7,13 +7,12 @@ import (
 )
 
 // all storage struct must implement this interface
-type RepoInterface interface {
-	AddUser(userId string) error
-	AddLoanToUser(userId string, amount int, interest int) error
-	GetByUser(userId string) (*types.User, error)
+type LoanRepository interface {
+	AddLoanToUser(userId string, Loan *types.Loan) error
+	UpdateLoanData(userId string, loanData *types.Loan) error
 }
 
-func InitRepoByStorage(storageName string) RepoInterface {
+func InitLoanRepoByStorage(storageName string) LoanRepository {
 	switch storageName {
 	default:
 		panic(fmt.Sprintf("Unsupported storage: %s", storageName))
