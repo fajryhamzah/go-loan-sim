@@ -27,9 +27,9 @@ func (l *LoanService) AddLoan(userId string, amount int) (*types.Loan, error) {
 	if loanActive != nil {
 		return nil, errors.New("can't create new loan, user still has active loan")
 	}
-
 	totalLoanAmount := int(math.Round(float64(constants.FLAT_INTEREST)/100*float64(amount) + float64(amount)))
 	weeklyPayment := totalLoanAmount / constants.WEEK_LOAN
+	remainder := totalLoanAmount % constants.WEEK_LOAN
 	now := utils.Now()
 
 	loanData = &types.Loan{
@@ -42,13 +42,21 @@ func (l *LoanService) AddLoan(userId string, amount int) (*types.Loan, error) {
 		WeeklyPaymentAmount: weeklyPayment,
 	}
 
+	installments = []*types.LoanPaymentSchedule{}
+
 	for i := 1; i <= constants.WEEK_LOAN; i++ {
+		payment := weeklyPayment
+		if i <= remainder {
+			payment += 1
+		}
+
 		installments = append(installments, &types.LoanPaymentSchedule{
 			LoanPaymentScheduleID: uuid.NewString(),
-			Amount:                weeklyPayment,
+			Amount:                payment,
 			Status:                constants.STATUS_PENDING,
 			DueDate:               now,
 		})
+
 		now = now.AddDate(0, 0, 7)
 	}
 
@@ -65,13 +73,8 @@ func (l *LoanService) MakePayment(loanId string, amount int) (*types.Loan, error
 		return nil, err
 	}
 
-	if loanActive.Status != constants.STATUS_ACTIVE {
-		return nil, errors.New("loan status is not active")
-	}
-
-	// we can remove this if in the future we allow minimum payments
-	if amount != loanActive.WeeklyPaymentAmount {
-		return nil, fmt.Errorf("can't pay less or more than %d", loanActive.WeeklyPaymentAmount)
+	if loanActive == nil {
+		return nil, errors.New("user does not have any loan")
 	}
 
 	now := utils.Now()
@@ -81,6 +84,10 @@ func (l *LoanService) MakePayment(loanId string, amount int) (*types.Loan, error
 	for _, loanForPay := range loanActive.LoanPaymentSchedule {
 		if loanForPay.Status == constants.STATUS_PAID || !now.After(loanForPay.DueDate) {
 			continue
+		}
+
+		if amount != loanForPay.Amount {
+			return nil, fmt.Errorf("can't pay less or more than %d", loanForPay.Amount)
 		}
 
 		loanForPay.PaidAmount = amount

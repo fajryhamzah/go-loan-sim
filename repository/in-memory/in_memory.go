@@ -96,7 +96,17 @@ func (i *InMemoryStorage) GetLoanById(loanId string) (*types.Loan, error) {
 		return nil, errors.New("user is not exist")
 	}
 
-	return i.UserList[userId].LoanActive, nil
+	if i.UserList[userId].LoanActive != nil && i.UserList[userId].LoanActive.LoanID == loanId {
+		return i.UserList[userId].LoanActive, nil
+	}
+
+	for _, loan := range i.UserList[userId].LoanHistory {
+		if loan.LoanID == loanId {
+			return loan, nil
+		}
+	}
+
+	return nil, errors.New("loan does not exist on mapping user")
 }
 
 func (i *InMemoryStorage) GetLoanPaymentByDate(date time.Time) (map[string]*types.Loan, error) {
