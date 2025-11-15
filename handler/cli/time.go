@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"github.com/fajryhamzah/go-loan-sim/constants"
 	"github.com/fajryhamzah/go-loan-sim/services/loan"
 	"github.com/fajryhamzah/go-loan-sim/utils"
 )
@@ -45,9 +46,16 @@ func TimeHandler(loanService loan.LoanServiceInterface, inputs ...string) {
 			utils.PrintGreen(fmt.Sprintf("%dx", loanActive.MissPayment))
 			utils.PrintInlineBlue("Weekly payment: ")
 			utils.PrintGreen(utils.FormatRupiah(loanActive.WeeklyPaymentAmount))
+			totalDueAmount := 0
+			for _, loanSchedule := range loanActive.LoanPaymentSchedule {
+				if loanSchedule.Status != constants.STATUS_MISS_PAYMENT {
+					continue
+				}
+
+				totalDueAmount += loanSchedule.Amount
+			}
 			utils.PrintInlineBlue("Total due amount: ")
-			payment := loanActive.WeeklyPaymentAmount + loanActive.MissPayment*loanActive.WeeklyPaymentAmount
-			utils.PrintRed(utils.FormatRupiah(payment))
+			utils.PrintRed(utils.FormatRupiah(totalDueAmount))
 			utils.PrintBlue("--------------------------------------------")
 		}
 	default:

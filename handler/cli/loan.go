@@ -80,19 +80,22 @@ func LoanHandler(loanService loan.LoanServiceInterface, inputs ...string) {
 		utils.PrintRed(fmt.Sprintf("%dx", len(loanActive.LoanPaymentSchedule)))
 		utils.PrintInlineBlue("Miss Payment: ")
 		utils.PrintRed(fmt.Sprintf("%dx", loanActive.MissPayment))
+		utils.PrintBlue("Installment: ")
 
-		if loanActive.MissPayment > 0 {
-			utils.PrintBlue("Missing installment: ")
+		for idx, loanSchedule := range loanActive.LoanPaymentSchedule {
+			utils.PrintInlineBlue("	- Installment: ")
+			utils.PrintGreen(idx + 1)
+			utils.PrintInlineBlue("	  Amount: ")
+			utils.PrintRed(utils.FormatRupiah(loanSchedule.Amount))
+			utils.PrintInlineBlue("	  Due Date: ")
+			utils.PrintGreen(utils.Format(loanSchedule.DueDate))
+			utils.PrintInlineBlue("	  Status: ")
 
-			for idx, loanSchedule := range loanActive.LoanPaymentSchedule {
-				if loanSchedule.Status != constants.STATUS_MISS_PAYMENT {
-					continue
-				}
+			if loanSchedule.Status != constants.STATUS_MISS_PAYMENT {
+				utils.PrintGreen(loanSchedule.Status)
+			} else {
+				utils.PrintRed(fmt.Sprintf("%s [OVERDUE]", loanSchedule.Status))
 
-				utils.PrintInlineBlue("	- Installment: ")
-				utils.PrintGreen(idx + 1)
-				utils.PrintInlineBlue("	  Due Date: ")
-				utils.PrintGreen(utils.Format(loanSchedule.DueDate))
 			}
 		}
 	case "info":
@@ -134,19 +137,22 @@ func LoanHandler(loanService loan.LoanServiceInterface, inputs ...string) {
 		utils.PrintRed(fmt.Sprintf("%dx", len(loanActive.LoanPaymentSchedule)))
 		utils.PrintInlineBlue("Miss Payment: ")
 		utils.PrintRed(fmt.Sprintf("%dx", loanActive.MissPayment))
+		utils.PrintBlue("Installment: ")
 
-		if loanActive.MissPayment > 0 {
-			utils.PrintBlue("Missing installment: ")
+		for idx, loanSchedule := range loanActive.LoanPaymentSchedule {
+			utils.PrintInlineBlue("	- Installment: ")
+			utils.PrintGreen(idx + 1)
+			utils.PrintInlineBlue("	  Amount: ")
+			utils.PrintRed(utils.FormatRupiah(loanSchedule.Amount))
+			utils.PrintInlineBlue("	  Due Date: ")
+			utils.PrintGreen(utils.Format(loanSchedule.DueDate))
+			utils.PrintInlineBlue("	  Status: ")
 
-			for idx, loanSchedule := range loanActive.LoanPaymentSchedule {
-				if loanSchedule.Status != constants.STATUS_MISS_PAYMENT {
-					continue
-				}
+			if loanSchedule.Status != constants.STATUS_MISS_PAYMENT {
+				utils.PrintGreen(loanSchedule.Status)
+			} else {
+				utils.PrintRed(fmt.Sprintf("%s [OVERDUE]", loanSchedule.Status))
 
-				utils.PrintInlineBlue("	- Installment: ")
-				utils.PrintGreen(idx + 1)
-				utils.PrintInlineBlue("	  Due Date: ")
-				utils.PrintGreen(utils.Format(loanSchedule.DueDate))
 			}
 		}
 	case "pay":
@@ -186,9 +192,17 @@ func LoanHandler(loanService loan.LoanServiceInterface, inputs ...string) {
 			utils.PrintGreen(userId)
 			utils.PrintInlineBlue("Weekly payment: ")
 			utils.PrintGreen(utils.FormatRupiah(loanActive.WeeklyPaymentAmount))
+
+			totalDueAmount := 0
+			for _, loanSchedule := range loanActive.LoanPaymentSchedule {
+				if loanSchedule.Status != constants.STATUS_MISS_PAYMENT {
+					continue
+				}
+
+				totalDueAmount += loanSchedule.Amount
+			}
 			utils.PrintInlineBlue("Total due amount: ")
-			payment := loanActive.WeeklyPaymentAmount + loanActive.MissPayment*loanActive.WeeklyPaymentAmount
-			utils.PrintRed(utils.FormatRupiah(payment))
+			utils.PrintRed(utils.FormatRupiah(totalDueAmount))
 			utils.PrintBlue("--------------------------------------------")
 		}
 	case "outstanding":
