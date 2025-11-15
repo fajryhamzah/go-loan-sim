@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fajryhamzah/go-loan-sim/constants"
+	inmemory "github.com/fajryhamzah/go-loan-sim/repository/in-memory"
 	"github.com/fajryhamzah/go-loan-sim/types"
 )
 
@@ -20,6 +22,8 @@ type LoanRepository interface {
 
 func InitLoanRepoByStorage(storageName string) LoanRepository {
 	switch storageName {
+	case constants.IN_MEMORY_STORAGE:
+		return inmemory.Init()
 	default:
 		panic(fmt.Sprintf("Unsupported storage: %s", storageName))
 	}
