@@ -149,7 +149,6 @@ func LoanHandler(loanService loan.LoanServiceInterface, inputs ...string) {
 				utils.PrintGreen(utils.Format(loanSchedule.DueDate))
 			}
 		}
-
 	case "pay":
 		if len(inputs) != 3 {
 			utils.PrintRed("Need more args")
